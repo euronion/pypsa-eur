@@ -13,3 +13,4 @@ gurobi.log
 /data
 /data/links_p_nom.csv
 /cutouts
+snakemake.pickle
