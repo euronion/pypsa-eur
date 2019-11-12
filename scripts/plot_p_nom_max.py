@@ -1,6 +1,7 @@
 import pypsa
 import pandas as pd
 import matplotlib.pyplot as plt
+import logging
 
 def cum_p_nom_max(net, tech, country=None):
     carrier_b = net.generators.carrier == tech
@@ -20,7 +21,7 @@ def cum_p_nom_max(net, tech, country=None):
     return generators
 
 
-if __name__ == __main__:
+if __name__ == "__main__":
     # Detect running outside of snakemake and mock snakemake for testing
     if 'snakemake' not in globals():
         from vresutils.snakemake import MockSnakemake, Dict
@@ -45,7 +46,7 @@ if __name__ == __main__:
     plot_kwds = dict(drawstyle="steps-post")
 
     clusters = snakemake.wildcards.clusters.split(',')
-    techs = snakemake.params.techs
+    techs = snakemake.params.technology
     country = snakemake.wildcards.country
     if country == 'all':
         country = None
