@@ -83,14 +83,15 @@ line_colors = {'cur': "purple",
                'exp': to_rgba("red", 0.7)}
 tech_colors = opts['tech_colors']
 
-if snakemake.wildcards.attr == 'p_nom':
+plot = snakemake.wildcards.attr
+if plot == 'p_nom':
     # bus_sizes = n.generators_t.p.sum().loc[n.generators.carrier == "load"].groupby(n.generators.bus).sum()
     bus_sizes = pd.concat((n.generators.query('carrier != "load"').groupby(['bus', 'carrier']).p_nom_opt.sum(),
                            n.storage_units.groupby(['bus', 'carrier']).p_nom_opt.sum()))
     line_widths_exp = dict(Line=n.lines.s_nom_opt, Link=n.links.p_nom_opt)
     line_widths_cur = dict(Line=n.lines.s_nom_min, Link=n.links.p_nom_min)
 else:
-    raise 'plotting of {} has not been implemented yet'.format(plot)
+    raise ValueError('Plotting of "{}" has not been implemented yet'.format(plot))
 
 
 line_colors_with_alpha = \
