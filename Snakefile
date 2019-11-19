@@ -27,7 +27,7 @@ rule solve_all_elec_networks:
 if config['enable']['prepare_links_p_nom']:
     rule prepare_links_p_nom:
         output: 'data/links_p_nom.csv'
-        threads: 1
+        threads: 10
         resources: mem=500
         # group: 'nonfeedin_preparation'
         script: 'scripts/prepare_links_p_nom.py'
@@ -51,7 +51,7 @@ rule build_powerplants:
         base_network="networks/base.nc",
         custom_powerplants="data/custom_powerplants.csv"
     output: "resources/powerplants.csv"
-    threads: 1
+    threads: 10
     resources: mem=500
     # group: 'nonfeedin_preparation'
     script: "scripts/build_powerplants.py"
@@ -71,7 +71,7 @@ rule base_network:
         europe_shape='resources/europe_shape.geojson'
     output: "networks/base.nc"
     benchmark: "benchmarks/base_network"
-    threads: 1
+    threads: 10
     resources: mem=500
     # group: 'nonfeedin_preparation'
     script: "scripts/base_network.py"
@@ -90,7 +90,7 @@ rule build_shapes:
         offshore_shapes='resources/offshore_shapes.geojson',
         europe_shape='resources/europe_shape.geojson',
         nuts3_shapes='resources/nuts3_shapes.geojson'
-    threads: 1
+    threads: 10
     resources: mem=500
     # group: 'nonfeedin_preparation'
     script: "scripts/build_shapes.py"
@@ -179,7 +179,7 @@ rule add_electricity:
            for t in config['renewable']}
     output: "networks/elec.nc"
     benchmark: "benchmarks/add_electricity"
-    threads: 1
+    threads: 10
     resources: mem=3000
     # group: 'build_pypsa_networks'
     script: "scripts/add_electricity.py"
@@ -196,7 +196,7 @@ rule simplify_network:
         regions_offshore="resources/regions_offshore_{network}_s{simpl}.geojson",
         clustermaps='resources/clustermaps_{network}_s{simpl}.h5'
     benchmark: "benchmarks/simplify_network/{network}_s{simpl}"
-    threads: 1
+    threads: 10
     resources: mem=4000
     # group: 'build_pypsa_networks'
     script: "scripts/simplify_network.py"
@@ -214,7 +214,7 @@ rule cluster_network:
         regions_offshore="resources/regions_offshore_{network}_s{simpl}_{clusters}.geojson",
         clustermaps='resources/clustermaps_{network}_s{simpl}_{clusters}.h5'
     benchmark: "benchmarks/cluster_network/{network}_s{simpl}_{clusters}"
-    threads: 1
+    threads: 10
     resources: mem=3000
     # group: 'build_pypsa_networks'
     script: "scripts/cluster_network.py"
@@ -225,14 +225,14 @@ rule cluster_network:
 #         emobility="data/emobility"
 #     output: "networks/sector_{cost}_{resarea}_{sectors}_{opts}.nc"
 #     benchmark: "benchmarks/add_sectors/sector_{resarea}_{sectors}_{opts}"
-#     threads: 1
+#     threads: 10
 #     resources: mem=1000
 #     script: "scripts/add_sectors.py"
 
 rule prepare_network:
     input: 'networks/{network}_s{simpl}_{clusters}.nc', tech_costs=COSTS
     output: 'networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc'
-    threads: 1
+    threads: 10
     resources: mem=1000
     # benchmark: "benchmarks/prepare_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}"
     script: "scripts/prepare_network.py"
@@ -259,7 +259,7 @@ rule solve_network:
         python="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_python.log",
         memory="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_memory.log"
     benchmark: "benchmarks/solve_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}"
-    threads: 4
+    threads: 10
     resources: mem=memory
     # group: "solve" # with group, threads is ignored https://bitbucket.org/snakemake/snakemake/issues/971/group-job-description-does-not-contain
     script: "scripts/solve_network.py"
@@ -269,7 +269,7 @@ rule trace_solve_network:
     output: "results/networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}_trace.nc"
     shadow: "shallow"
     log: python="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_python_trace.log",
-    threads: 4
+    threads: 10
     resources: mem=memory
     script: "scripts/trace_solve_network.py"
 
@@ -284,7 +284,7 @@ rule solve_operations_network:
         python="logs/solve_operations_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}_op_python.log",
         memory="logs/solve_operations_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}_op_memory.log"
     benchmark: "benchmarks/solve_operations_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}"
-    threads: 4
+    threads: 10
     resources: mem=(lambda w: 5000 + 372 * int(w.clusters))
     # group: "solve_operations"
     script: "scripts/solve_operations_network.py"
