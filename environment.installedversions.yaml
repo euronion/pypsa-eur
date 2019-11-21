@@ -135,7 +135,7 @@ dependencies:
   - pillow=6.2.1
   - pip=19.3.1
   - pixman=0.38.0
-  - pluggy=0.12.0
+  - pluggy=0.13.0
   - ply=3.11
   - poppler=0.67.0
   - poppler-data=0.4.9
@@ -164,12 +164,12 @@ dependencies:
   - pytables=3.6.1
   - pytest=5.2.4
   - pytest-runner=5.2
-  - python=3.6.7
+  - python=3.7.3
   - python-dateutil=2.8.1
   - python-utils=2.3.0
   - pytz=2019.3
   - pyutilib=5.7.2
-  - pyyaml=3.12
+  - pyyaml=5.1.2
   - pyzmq=18.1.1
   - qt=5.9.7
   - rasterio=1.0.25
@@ -200,7 +200,7 @@ dependencies:
   - wcwidth=0.1.7
   - wheel=0.33.6
   - wrapt=1.11.2
-  - xarray=0.14.0
+  - xarray=0.14.1
   - xerces-c=3.2.2
   - xlrd=1.2.0
   - xorg-kbproto=1.0.7
@@ -215,7 +215,7 @@ dependencies:
   - xorg-xextproto=7.3.0
   - xorg-xproto=7.0.31
   - xz=5.2.4
-  - yaml=0.2.2
+  - yaml=0.1.7
   - zeromq=4.3.2
   - zict=1.0.0
   - zipp=0.6.0

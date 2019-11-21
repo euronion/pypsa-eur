@@ -16,7 +16,7 @@ dependencies:
   - seaborn
   - snakemake-minimal
   - memory_profiler
-  - yaml
+  - pyyaml>=5.1
   - pytables
 
   # Second order dependencies which should really be deps of atlite
@@ -30,6 +30,7 @@ dependencies:
   # Include ipython so that one does not inadvertently drop out of the conda
   # environment by calling ipython
   - ipython
+  - ipykernel
 
   # GIS dependencies have to come all from conda-forge
   - conda-forge::cartopy
