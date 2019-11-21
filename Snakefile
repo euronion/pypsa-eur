@@ -245,8 +245,8 @@ rule add_extra_components:
 #     script: "scripts/add_sectors.py"
 
 rule prepare_network:
-    input: 'networks/{network}_s{simpl}_{clusters}.nc', tech_costs=COSTS
-    output: 'networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc'
+    input: 'networks/{network}_s{simpl}_{clusters}_ec.nc', tech_costs=COSTS
+    output: 'networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc'
     threads: 10
     resources: mem=1000
     # benchmark: "benchmarks/prepare_network/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}"
@@ -270,10 +270,10 @@ rule solve_network:
     output: "results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc"
     shadow: "shallow"
     log:
-        solver="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_solver.log",
-        python="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_python.log",
-        memory="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_memory.log"
-    benchmark: "benchmarks/solve_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}"
+        solver="logs/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_solver.log",
+        python="logs/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_python.log",
+        memory="logs/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_memory.log"
+    benchmark: "benchmarks/solve_network/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}"
     threads: 10
     resources: mem=memory
     # group: "solve" # with group, threads is ignored https://bitbucket.org/snakemake/snakemake/issues/971/group-job-description-does-not-contain
@@ -283,7 +283,7 @@ rule trace_solve_network:
     input: "networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc"
     output: "results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_trace.nc"
     shadow: "shallow"
-    log: python="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_python_trace.log",
+    log: python="logs/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_python_trace.log",
     threads: 10
     resources: mem=memory
     script: "scripts/trace_solve_network.py"
@@ -295,10 +295,10 @@ rule solve_operations_network:
     output: "results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_op.nc"
     shadow: "shallow"
     log:
-        solver="logs/solve_operations_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}_op_solver.log",
-        python="logs/solve_operations_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}_op_python.log",
-        memory="logs/solve_operations_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}_op_memory.log"
-    benchmark: "benchmarks/solve_operations_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}"
+        solver="logs/solve_operations_network/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_op_solver.log",
+        python="logs/solve_operations_network/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_op_python.log",
+        memory="logs/solve_operations_network/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_op_memory.log"
+    benchmark: "benchmarks/solve_operations_network/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}"
     threads: 10
     resources: mem=(lambda w: 5000 + 372 * int(w.clusters))
     # group: "solve_operations"
