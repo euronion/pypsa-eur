@@ -16,15 +16,15 @@ rule cluster_all_elec_networks:
 
 rule prepare_all_elec_networks:
     input:
-        expand("networks/elec_s{simpl}_{clusters}_l{ll}_{opts}.nc",
+        expand("networks/elec_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc",
                **config['scenario'])
 
 rule solve_all_elec_networks:
     input:
-        expand("results/networks/elec_s{simpl}_{clusters}_l{ll}_{opts}.nc",
+        expand("results/networks/elec_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc",
                **config['scenario'])
 
-if config['enable']['prepare_links_p_nom']:
+if config['enable'].get('prepare_links_p_nom', False):
     rule prepare_links_p_nom:
         output: 'data/links_p_nom.csv'
         threads: 10
@@ -39,12 +39,14 @@ datafiles = ['ch_cantons.csv', 'je-e-21.03.02.xls',
             'NUTS_2013_60M_SH/data/NUTS_RG_60M_2013.shp', 'nama_10r_3popgdp.tsv.gz', 
             'nama_10r_3gdp.tsv.gz', 'time_series_60min_singleindex_filtered.csv', 
             'corine/g250_clc06_V18_5.tif']
-if not config['tutorial']:
+
+if not config.get('tutorial', False):
     datafiles.extend(["natura/Natura2000_end2015.shp", "GEBCO_2014_2D.nc"])
 
-rule retrieve_databundle:
-    output:  expand('data/bundle/{file}', file=datafiles)
-    script: 'scripts/retrieve_databundle.py'
+if config['enable'].get('retrieve_databundle', True):
+    rule retrieve_databundle:
+        output:  expand('data/bundle/{file}', file=datafiles)
+        script: 'scripts/retrieve_databundle.py'
 
 rule build_powerplants:
     input:
@@ -107,7 +109,7 @@ rule build_bus_regions:
     # group: 'nonfeedin_preparation'
     script: "scripts/build_bus_regions.py"
 
-if config['enable']['build_cutout']:        
+if config['enable'].get('build_cutout', False):        
     rule build_cutout:
         output: directory("cutouts/{cutout}")
         resources: mem=config['atlite'].get('nprocesses', 4) * 1000
@@ -121,7 +123,7 @@ else:
         script: 'scripts/retrieve_cutout.py'
 
 
-if config['enable']['build_natura_raster']:        
+if config['enable'].get('build_natura_raster', False):        
     rule build_natura_raster:
         input: 
             natura="data/bundle/natura/Natura2000_end2015.shp",
@@ -219,6 +221,19 @@ rule cluster_network:
     # group: 'build_pypsa_networks'
     script: "scripts/cluster_network.py"
 
+
+rule add_extra_components:
+    input:
+        network='networks/{network}_s{simpl}_{clusters}.nc',
+        tech_costs=COSTS,
+    output: 'networks/{network}_s{simpl}_{clusters}_ec.nc'
+    benchmark: "benchmarks/add_extra_components/{network}_s{simpl}_{clusters}_ec"
+    threads: 1
+    resources: mem=3000
+    # group: 'build_pypsa_networks'
+    script: "scripts/add_extra_components.py"
+
+
 # rule add_sectors:
 #     input:
 #         network="networks/elec_{cost}_{resarea}_{opts}.nc",
@@ -234,7 +249,7 @@ rule prepare_network:
     output: 'networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc'
     threads: 10
     resources: mem=1000
-    # benchmark: "benchmarks/prepare_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}"
+    # benchmark: "benchmarks/prepare_network/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}"
     script: "scripts/prepare_network.py"
 
 def memory(w):
@@ -251,8 +266,8 @@ def memory(w):
         # return 4890+310 * int(w.clusters)
 
 rule solve_network:
-    input: "networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc"
-    output: "results/networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc"
+    input: "networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc"
+    output: "results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc"
     shadow: "shallow"
     log:
         solver="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_solver.log",
@@ -265,8 +280,8 @@ rule solve_network:
     script: "scripts/solve_network.py"
 
 rule trace_solve_network:
-    input: "networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc"
-    output: "results/networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}_trace.nc"
+    input: "networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc"
+    output: "results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_trace.nc"
     shadow: "shallow"
     log: python="logs/{network}_s{simpl}_{clusters}_l{ll}_{opts}_python_trace.log",
     threads: 10
@@ -276,8 +291,8 @@ rule trace_solve_network:
 rule solve_operations_network:
     input:
         unprepared="networks/{network}_s{simpl}_{clusters}.nc",
-        optimized="results/networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc"
-    output: "results/networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}_op.nc"
+        optimized="results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc"
+    output: "results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_op.nc"
     shadow: "shallow"
     log:
         solver="logs/solve_operations_network/{network}_s{simpl}_{clusters}_l{ll}_{opts}_op_solver.log",
@@ -291,11 +306,11 @@ rule solve_operations_network:
 
 rule plot_network:
     input:
-        network="results/networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc",
+        network="results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc",
         tech_costs=COSTS
     output:
-        only_map="results/plots/{network}_s{simpl}_{clusters}_l{ll}_{opts}_{attr}.{ext}",
-        ext="results/plots/{network}_s{simpl}_{clusters}_l{ll}_{opts}_{attr}_ext.{ext}"
+        only_map="results/plots/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_{attr}.{ext}",
+        ext="results/plots/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_{attr}_ext.{ext}"
     script: "scripts/plot_network.py"
 
 def input_make_summary(w):
@@ -307,7 +322,7 @@ def input_make_summary(w):
     else:
         ll = w.ll
     return ([COSTS] +
-            expand("results/networks/{network}_s{simpl}_{clusters}_l{ll}_{opts}.nc",
+            expand("results/networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc",
                    network=w.network,
                    ll=ll,
                    **{k: config["scenario"][k] if getattr(w, k) == "all" else getattr(w, k)
@@ -315,12 +330,12 @@ def input_make_summary(w):
 
 rule make_summary:
     input: input_make_summary
-    output: directory("results/summaries/{network}_s{simpl}_{clusters}_l{ll}_{opts}_{country}")
+    output: directory("results/summaries/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_{country}")
     script: "scripts/make_summary.py"
 
 rule plot_summary:
-    input: "results/summaries/{network}_s{simpl}_{clusters}_l{ll}_{opts}_{country}"
-    output: "results/plots/summary_{summary}_{network}_s{simpl}_{clusters}_l{ll}_{opts}_{country}.{ext}"
+    input: "results/summaries/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_{country}"
+    output: "results/plots/summary_{summary}_{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}_{country}.{ext}"
     script: "scripts/plot_summary.py"
 
 def input_plot_p_nom_max(wildcards):
