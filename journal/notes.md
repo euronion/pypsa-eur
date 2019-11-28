@@ -89,5 +89,44 @@ The original update to the new version did not change the databundles, as they a
 Steps for updating to current version
 
 * Archive the current state: as a tarball, indepdendent from GitHub (with time-stamp)
+
+```
+    tar -cvf pypsa-eur_hambach_20191121_1205.tar pypsa-eur/
+```
+
 * update the current master branch and working branch 'hambach' to current upstream/master repository
-* recreate / download the databundles as currently suggested by the tutorial and workflow
+    (via git)
+* delete the following existing folders which are part of the data bundle or created during the snakemake workflow:
+
+```
+    rm -r cutouts
+    rm resources/*
+    rm -r data/bundle
+    rm -r test
+    rm -r networks
+    rm -r results
+    rm -r logs
+    rm -r snakemake
+```
+
+* recreate / download the data bundles as currently suggested by the tutorial and workflow
+
+```
+    snakemake retrieve_databundle
+    curl -OL "https://zenodo.org/record/3517949/files/pypsa-eur-cutouts.tar.xz"
+    curl -L "https://zenodo.org/record/3518215/files/natura.tiff" -o "resources/natura.tiff"
+    tar xJf pypsa-eur-cutouts.tar.xz
+    rm pypsa-eur-cutouts.tar.xz
+```
+
+## Running the model
+
+Syntax changed slightly with the update, additional 'ec' necessary (also added in `Snakefile` where it was missing from one rule).
+To solve the network:
+
+```
+    snakemake --cores=10 --shadow-prefix=/tmp/snakemake-shadow/ results/networks/elec_s_37_ec_lcopt_Co2L-3H.nc
+```
+
+The problem of the missing 'ec' from the `Snakefile` was due to an incorrect manual merge on my side,
+i.e. fixed afterwards and updated to math the current version on upstream/master
