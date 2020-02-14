@@ -129,4 +129,64 @@ To solve the network:
 ```
 
 The problem of the missing 'ec' from the `Snakefile` was due to an incorrect manual merge on my side,
-i.e. fixed afterwards and updated to math the current version on upstream/master
+i.e. fixed afterwards and updated to math the current version on upstream/master.
+
+---
+**2019-12-03**
+
+* Model still contains only very low amounts of hydrogen and battery storage used.
+* Model was recreated with 45 clusters to increase spatial resolution a little bit
+    * It is intresting to see Germany and France split into multiple clusters
+    * Also the UK is split into more clusters, with significant transmission going on between England and Scottland
+
+## Model with Stores instead of Storage Units
+
+To see, if the problem with low battery and hydrogen investment is due to a modelling decision
+of representing both as Storage Units, redo the simulation
+
+* Define both storage units now as stores
+    * Stores are independent
+    * Connect to links (transformers) with independend optimisation
+    * Now 3 investment and optimisation options for both technologies each
+    * Configuration done by changing in `config.yaml`:
+        `electricity.extenable_carriers.storage_units` and 
+        `electricity.extenable_carriers.stores`
+    * Existing simulation results are renamed from `elec_s_45_ec_lcopt_Co2L-3H.nc` to `elec_s_45_ec_lcopt_Co2L-3H_storage-units`
+    * Deleting everything in the workflow which depends on the change, i.e. the output of rule `add_extra_components`
+    * Then manually executed the rule to recreate the network with attatched extra components `snakemake networks/elec_s_45_ec.nc`
+    * Increased number of cores in `Snakefile` for most rules
+    * Rerun the solving
+    ```
+        snakemake --cores=16 --shadow-prefix=/tmp/snakemake-shadow/ results/networks/elec_s_45_ec_lcopt_Co2L-3H.nc
+    ```
+    Since the `networks/elec_s_45_ec.nc` changed, the depending downstream rules are rerun.
+
+# 2019-12-05
+
+For plotting results, the analysis script was modified slightly:
+The legend displaying the bubble size and respective capacity (5, 10 GW) where not displayed correctly.
+(Problem: Adding Circle Patches to a matplotlib legend is not directly possible.
+Adding a scatter plot as legend does not correctly preserve the sizes, so Patches were added to fake a legend
+and represent the bubble sizes correctly.)
+
+Results of the 2019-12-03 run are similar to the run before: Nearly no hydrogen is deployed (~10 MW max. on one node) and PHS / Hydro dam is providing for most of the (long-term) storage. Batteries are only deployed in southern countries.
+
+![](Optimised%20generation%20capacities..png)
+![](Optimised%20storage%20capacities.png)
+![](State%20of%20charge%20all%20storages.png)
+
+## Modifying hydro capacities
+
+Possible cause could be too high hydro capacities, trying a new run using the option
+```
+    hydro_max_hours: "estimate_by_large_installations"   # one of energy_capacity_totals_by_country,
+```
+
+and introducing a `run` wildcard in the `Snakefile`, to store results with a prefix `results/networks//{run}_xyz.nc`.
+To rerun the model, deleting the output of rule `add_electricity` (which is influenced by this config change) and rerunning snamekake again
+
+# 2019-12-06
+
+* Disable downloading of datafiles (`retrieve_databundle`) in `Snakefile` workflow via `config.yaml` -
+  the files are already downloaded, so we do not need to redownload them everytime / delete them via the
+  rule for deleting outputs.
