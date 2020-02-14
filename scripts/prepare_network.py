@@ -122,8 +122,10 @@ def set_line_cost_limit(n, lc, Nyears=1.):
         n.links.loc[links_dc_b, 'p_nom_extendable'] = True
 
         if lc != 'opt':
-            n.line_cost_limit = float(lc) * total_line_cost
-
+            line_cost = float(lc) * total_line_cost
+            n.add('GlobalConstraint', 'lc_limit',
+                  type='transmission_expansion_cost_limit',
+                  sense='<=', constant=line_cost, carrier_attribute='AC, DC')
     return n
 
 def set_line_volume_limit(n, lv, Nyears=1.):
@@ -156,8 +158,10 @@ def set_line_volume_limit(n, lv, Nyears=1.):
         n.links.loc[links_dc_b, 'p_nom_extendable'] = True
 
         if lv != 'opt':
-            n.line_volume_limit = float(lv) * total_line_volume
-
+            line_volume = float(lv) * total_line_volume
+            n.add('GlobalConstraint', 'lv_limit',
+                  type='transmission_volume_expansion_limit',
+                  sense='<=', constant=line_volume, carrier_attribute='AC, DC')
     return n
 
 def average_every_nhours(n, offset):
@@ -178,15 +182,10 @@ def average_every_nhours(n, offset):
 
 
 if __name__ == "__main__":
-    # Detect running outside of snakemake and mock snakemake for testing
     if 'snakemake' not in globals():
-        from vresutils.snakemake import MockSnakemake
-        snakemake = MockSnakemake(
-            wildcards=dict(network='elec', simpl='', clusters='37', ll='v2', opts='Co2L-3H'),
-            input=['networks/{network}_s{simpl}_{clusters}.nc'],
-            output=['networks/{network}_s{simpl}_{clusters}_ec_l{ll}_{opts}.nc']
-        )
-
+        from _helpers import mock_snakemake
+        snakemake = mock_snakemake('prepare_network', network='elec', simpl='',
+                                  clusters='5', ll='copt', opts='Co2L-24H')
     configure_logging(snakemake)
 
     opts = snakemake.wildcards.opts.split('-')

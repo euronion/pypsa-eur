@@ -5,7 +5,7 @@ channels:
 dependencies:
   #- python
   - pip
-  - pypsa>=0.15
+  # - pypsa>=0.16 # until PyPSA/a3c0991 released 
   - atlite
 
   # Dependencies of the workflow itself
@@ -35,7 +35,7 @@ dependencies:
   # GIS dependencies have to come all from conda-forge
   - conda-forge::cartopy
   - conda-forge::fiona
-  - conda-forge::pyproj<=1.9.6 # until cartopy release with proj>=6.2
+  - conda-forge::proj
   - conda-forge::pyshp
   - conda-forge::geopandas
   - conda-forge::rasterio
@@ -47,6 +47,7 @@ dependencies:
     - git+https://github.com/FRESNA/vresutils.git#egg=vresutils
     - git+https://github.com/PyPSA/glaes.git#egg=glaes
     - git+https://github.com/PyPSA/geokit.git#egg=geokit
+    - git+https://github.com/PyPSA/pypsa.git#egg=pypsa # until PyPSA/a3c0991 released 
     - cdsapi
     - sphinx
     - sphinx_rtd_theme
