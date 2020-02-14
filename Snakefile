@@ -51,7 +51,7 @@ if not config.get('tutorial', False):
 
 if config['enable'].get('retrieve_databundle', True):
     rule retrieve_databundle:
-        output:  expand('data/bundle/{file}', file=datafiles)
+        output:  protected(expand('data/bundle/{file}', file=datafiles))
         log: "logs/retrieve_databundle.log"
         script: 'scripts/retrieve_databundle.py'
 
@@ -120,7 +120,7 @@ rule build_bus_regions:
 
 if config['enable'].get('build_cutout', False):        
     rule build_cutout:
-        output: directory("cutouts/{cutout}")
+        output: protected(directory("cutouts/{cutout}"))
         log: "logs/build_cutout.log"
         resources: mem=config['atlite'].get('nprocesses', 4) * 1000
         threads: config['atlite'].get('nprocesses', 4)
@@ -129,7 +129,7 @@ if config['enable'].get('build_cutout', False):
         script: "scripts/build_cutout.py"
 else:
     rule retrieve_cutout:
-        output: directory(expand("cutouts/{cutouts}", **config['atlite'])),
+        output: protected(directory(expand("cutouts/{cutouts}", **config['atlite'])))
         log: "logs/retrieve_cutout.log"
         script: 'scripts/retrieve_cutout.py'
 
@@ -139,12 +139,12 @@ if config['enable'].get('build_natura_raster', False):
         input: 
             natura="data/bundle/natura/Natura2000_end2015.shp",
             cutouts=expand("cutouts/{cutouts}", **config['atlite'])
-        output: "resources/natura.tiff"
+        output: protected("resources/natura.tiff")
         log: "logs/build_natura_raster.log"
         script: "scripts/build_natura_raster.py"
 else:
     rule retrieve_natura_raster:
-        output: "resources/natura.tiff"
+        output: protected("resources/natura.tiff")
         log: "logs/retrieve_natura_raster.log"
         script: 'scripts/retrieve_natura_raster.py'
 
