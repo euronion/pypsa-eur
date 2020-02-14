@@ -76,28 +76,24 @@ from scipy.spatial import cKDTree as KDTree
 import pypsa
 import powerplantmatching as pm
 import pandas as pd
+import numpy as np
 
 def add_custom_powerplants(ppl):
     custom_ppl_query = snakemake.config['electricity']['custom_powerplants']
     if not custom_ppl_query:
         return ppl
-    add_ppls = pd.read_csv(snakemake.input.custom_powerplants, index_col=0)
+    add_ppls = pd.read_csv(snakemake.input.custom_powerplants, index_col=0,
+                           dtype={'bus': 'str'})
     if isinstance(custom_ppl_query, str):
-        add_ppls.query(add_ppls, inplace=True)
+        add_ppls.query(custom_ppl_query, inplace=True)
     return ppl.append(add_ppls, sort=False)
 
 
 if __name__ == "__main__":
 
     if 'snakemake' not in globals():
-        from vresutils.snakemake import MockSnakemake, Dict
-
-        snakemake = MockSnakemake(
-            input=Dict(base_network='networks/base.nc',
-                       custom_powerplants='data/custom_powerplants.csv'),
-            output=['resources/powerplants.csv']
-        )
-
+        from _helpers import mock_snakemake
+        snakemake = mock_snakemake('build_powerplants')
     configure_logging(snakemake)
 
     n = pypsa.Network(snakemake.input.base_network)
@@ -127,8 +123,8 @@ if __name__ == "__main__":
         kdtree = KDTree(n.buses.loc[substation_i, ['x','y']].values)
         ppl_i = ppl.query('Country == @c').index
 
-        ppl.loc[ppl_i, 'bus'] = substation_i[kdtree.query(ppl.loc[ppl_i,
-                                                          ['lon','lat']].values)[1]]
+        tree_i = kdtree.query(ppl.loc[ppl_i, ['lon','lat']].values)[1]
+        ppl.loc[ppl_i, 'bus'] = substation_i.append(pd.Index([np.nan]))[tree_i]
 
     if cntries_without_ppl:
         logging.warning(f"No powerplants known in: {', '.join(cntries_without_ppl)}")
